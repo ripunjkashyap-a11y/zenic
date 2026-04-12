@@ -1,0 +1,19 @@
+.env
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+
+# Local vector DB
+chroma_db/
+
+# Downloaded raw data
+data/
+
+# Dev spot-check logs
+dev_log/
+baseline_*.json
+
+# Streamlit
+.streamlit/secrets.toml
