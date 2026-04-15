@@ -120,9 +120,15 @@ def _build_llm():
         raise EnvironmentError("GOOGLE_API_KEY not set in environment / .env")
 
     gemini = ChatGoogleGenerativeAI(
-        model="gemini-2.0-flash",
+        model="gemma-4-31b-it",
         google_api_key=api_key,
+        max_output_tokens=4096,
+        timeout=300,
         temperature=0,
+        # Pass thinking_config via model_kwargs so langchain-google-genai forwards
+        # it directly to the API call — thinking_budget=0 suppresses Gemma 4's
+        # reasoning preamble so RAGAS receives clean JSON output.
+        model_kwargs={"thinking_config": {"thinking_budget": 0}},
     )
     return LangchainLLMWrapper(gemini)
 
@@ -164,7 +170,7 @@ def main() -> None:
         return
 
     print(f"\nZenic RAGAS Eval — Pillar 3")
-    print(f"Judge LLM : Gemini 2.0 Flash (GOOGLE_API_KEY)")
+    print(f"Judge LLM : gemma-4-31b-it/thinking_budget=0 (GOOGLE_API_KEY)")
     print(f"Metrics   : faithfulness (target >0.85), context_precision/no-ref (target >0.75)")
     print(f"Cases     : {len(cases)}")
     if skip_ids:
@@ -210,8 +216,9 @@ def main() -> None:
     dataset = HFDataset.from_dict(rows)
     llm = _build_llm()
 
-    # Generous timeout — Gemini can be slow under load
-    run_config = RunConfig(timeout=180, max_retries=3, max_wait=60)
+    # max_workers=2: stay within Gemma 4's 15 RPM free-tier limit.
+    # thinking_budget=0 removes multi-KB preamble so calls complete well within timeout.
+    run_config = RunConfig(timeout=300, max_retries=5, max_wait=90, max_workers=2)
 
     result = evaluate(
         dataset,

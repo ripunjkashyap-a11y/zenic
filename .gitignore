@@ -1,9 +1,26 @@
+# Environment
 .env
+.env.*
+!.env.example
+
+# Python
 __pycache__/
 *.pyc
 *.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# Test / type checking
 .pytest_cache/
 .mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+coverage.xml
 
 # Local vector DB
 chroma_db/
@@ -15,5 +32,34 @@ data/
 dev_log/
 baseline_*.json
 
+# Evaluation outputs
+eval_results/
+ragas_results/
+*.ragas.json
+
+# Jupyter / notebooks
+.ipynb_checkpoints/
+*.ipynb
+
+# IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+
 # Streamlit
 .streamlit/secrets.toml
+
+# Claude Code
+CLAUDE.md
+summary.txt
+NEXT_SESSION.md
+.claude/settings.local.json
+
+# One-off probe / debug scripts (not part of the production codebase)
+scripts/test_*.py
+scripts/test_output.txt
+scripts/debug_*.py

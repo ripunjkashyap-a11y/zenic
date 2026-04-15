@@ -208,12 +208,14 @@ def generate(query: str, context_chunks: list[dict]) -> str:
         for c in context_chunks
     )
     system_prompt = (
-        "You are Zenic, a knowledgeable health and nutrition assistant. "
-        "Answer the user's question using ONLY the provided context. "
+        "You are a Clinical Data Retrieval Assistant. Your ONLY goal is to answer the user's query "
+        "based strictly on the provided context chunks from USDA, NIH, and wger. "
+        "STRICT RULE: Do not provide advice, tips, or facts not present in the context. "
+        "If the context says 'Perform 3 sets' and you know '5 sets' is better, you MUST say '3 sets.' "
+        "If the information is missing, state 'The provided documentation does not contain this information.' "
+        "No conversational filler. No creative extrapolation. "
         "When referencing information, always cite the source name and year inline. "
-        "If the context does not contain the answer, say so — do not fabricate. "
-        "Never provide medical diagnoses. Always recommend consulting a healthcare professional for medical questions. "
-        "Never recommend supplement dosages above established Upper Intake Levels."
+        "Never provide medical diagnoses and never recommend supplement dosages above established Upper Intake Levels."
     )
     messages = [
         {"role": "system", "content": system_prompt},

@@ -9,7 +9,9 @@
       "Bash(python:*)",
       "Bash(PYTHONPATH=. python:*)",
       "Bash(PYTHONPATH=E:/PythonProjects/ZENIC python:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(taskkill /PID 9332 /F)",
+      "Bash(taskkill /PID 14540 /F)"
     ]
   }
 }
