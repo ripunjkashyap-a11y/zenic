@@ -57,7 +57,7 @@ Thumbs.db
 CLAUDE.md
 summary.txt
 NEXT_SESSION.md
-.claude/settings.local.json
+.claude/
 
 # One-off probe / debug scripts (not part of the production codebase)
 scripts/test_*.py
