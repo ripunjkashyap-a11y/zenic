@@ -33,7 +33,8 @@ dev_log/
 baseline_*.json
 
 # Evaluation outputs
-eval_results/
+eval_results/*
+!eval_results/ragas_latest.json
 ragas_results/
 *.ragas.json
 
@@ -63,3 +64,11 @@ NEXT_SESSION.md
 scripts/test_*.py
 scripts/test_output.txt
 scripts/debug_*.py
+debug_*.py
+
+# Temporary debug output files
+tmp_*.txt
+
+# Internal planning / session notes (not for public repo)
+OVERVIEW/
+TESTING/
