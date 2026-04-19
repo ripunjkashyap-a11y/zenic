@@ -27,6 +27,7 @@ chroma_db/
 
 # Downloaded raw data
 data/
+!data/bm25_corpus.json
 
 # Dev spot-check logs
 dev_log/

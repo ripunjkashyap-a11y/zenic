@@ -200,27 +200,47 @@ def retrieve(query: str) -> list[dict]:
     return rerank(query, candidates, top_k=9)
 
 
-def generate(query: str, context_chunks: list[dict]) -> str:
+def _all_low_quality(chunks: list[dict], threshold: float = 0.3) -> bool:
+    """True when every retrieved chunk scored below the quality threshold."""
+    if not chunks:
+        return True
+    return all(c.get("rerank_score", 0.0) < threshold for c in chunks)
+
+
+def generate(query: str, context_chunks: list[dict], intent: str = "") -> str:
     """Generate a grounded answer with source citations."""
-    context_text = "\n\n".join(
-        f"[Source: {c['metadata'].get('source', 'Unknown')}, "
-        f"{c['metadata'].get('year', '')}]\n{c['text']}"
-        for c in context_chunks
-    )
-    system_prompt = (
-        "You are a Clinical Data Retrieval Assistant. Your ONLY goal is to answer the user's query "
-        "based strictly on the provided context chunks from USDA, NIH, and wger. "
-        "STRICT RULE: Do not provide advice, tips, or facts not present in the context. "
-        "If the context says 'Perform 3 sets' and you know '5 sets' is better, you MUST say '3 sets.' "
-        "If the information is missing, state 'The provided documentation does not contain this information.' "
-        "No conversational filler. No creative extrapolation. "
-        "When referencing information, always cite the source name and year inline. "
-        "Never provide medical diagnoses and never recommend supplement dosages above established Upper Intake Levels."
-    )
-    messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": f"Context:\n{context_text}\n\nQuestion: {query}"},
-    ]
+    if intent == "general_chat" or not context_chunks or _all_low_quality(context_chunks):
+        system_prompt = (
+            "You are Zenic, a friendly AI health and nutrition assistant. "
+            "Answer the user's question conversationally and helpfully. "
+            "You can discuss nutrition, fitness, meal planning, and general health topics. "
+            "Never provide medical diagnoses and never recommend supplement dosages above established Upper Intake Levels. "
+            "Keep your answers concise and practical."
+        )
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": query},
+        ]
+    else:
+        context_text = "\n\n".join(
+            f"[Source: {c['metadata'].get('source', 'Unknown')}, "
+            f"{c['metadata'].get('year', '')}]\n{c['text']}"
+            for c in context_chunks
+        )
+        system_prompt = (
+            "You are a Clinical Data Retrieval Assistant. Your ONLY goal is to answer the user's query "
+            "based strictly on the provided context chunks from USDA, NIH, and wger. "
+            "STRICT RULE: Do not provide advice, tips, or facts not present in the context. "
+            "If the context says 'Perform 3 sets' and you know '5 sets' is better, you MUST say '3 sets.' "
+            "If the information is missing, state 'The provided documentation does not contain this information.' "
+            "No conversational filler. No creative extrapolation. "
+            "When referencing information, always cite the source name and year inline. "
+            "Never provide medical diagnoses and never recommend supplement dosages above established Upper Intake Levels."
+        )
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": f"Context:\n{context_text}\n\nQuestion: {query}"},
+        ]
     response = _groq().chat.completions.create(
         model=os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"),
         messages=messages,

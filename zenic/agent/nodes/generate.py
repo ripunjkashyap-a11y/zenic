@@ -18,5 +18,5 @@ def run(state: ZenicState) -> dict:
         tool_text = "Calculation results:\n" + "\n".join(f"  {k}: {v}" for k, v in tool_results.items())
         context = [{"text": tool_text, "metadata": {"source": "Zenic Calculator"}}] + context
 
-    answer = rag_generate(query, context)
+    answer = rag_generate(query, context, intent=state.get("intent", ""))
     return {"messages": [{"role": "assistant", "content": answer}]}

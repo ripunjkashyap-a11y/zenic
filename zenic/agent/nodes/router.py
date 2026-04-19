@@ -6,6 +6,14 @@ from groq import Groq
 from zenic.agent.state import ZenicState
 
 _INTENTS = ["nutrition_qa", "calculate", "meal_plan", "workout_plan", "weekly_summary", "general_chat"]
+_groq_client: Groq | None = None
+
+
+def _groq() -> Groq:
+    global _groq_client
+    if _groq_client is None:
+        _groq_client = Groq(api_key=os.environ["GROQ_API_KEY"])
+    return _groq_client
 
 _SYSTEM_PROMPT = f"""Classify the user's message into exactly one intent.
 Return a JSON object with a single key "intent" from this list: {_INTENTS}.
@@ -26,6 +34,12 @@ Examples:
 - "Give me a PPL workout split" → {{"intent": "workout_plan"}}
 - "Summarize my week" → {{"intent": "weekly_summary"}}
 - "What can you do?" → {{"intent": "general_chat"}}
+- "What is Zenic?" → {{"intent": "general_chat"}}
+- "Hello" → {{"intent": "general_chat"}}
+- "Tell me about yourself" → {{"intent": "general_chat"}}
+
+general_chat covers greetings, questions about Zenic itself, and anything that
+is NOT a factual nutrition/exercise lookup, calculation, plan request, or summary.
 """
 
 # LangChain message types → OpenAI/Groq API roles
@@ -33,7 +47,6 @@ _ROLE_MAP = {"human": "user", "ai": "assistant", "system": "system"}
 
 
 def run(state: ZenicState) -> dict:
-    client = Groq(api_key=os.environ["GROQ_API_KEY"])
     messages = [{"role": "system", "content": _SYSTEM_PROMPT}]
     for msg in state.get("messages", []):
         if isinstance(msg, dict):
@@ -44,7 +57,7 @@ def run(state: ZenicState) -> dict:
             content = msg.content
         messages.append({"role": role, "content": content})
 
-    response = client.chat.completions.create(
+    response = _groq().chat.completions.create(
         model=os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"),
         messages=messages,
         response_format={"type": "json_object"},
