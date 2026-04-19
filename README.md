@@ -81,35 +81,32 @@ Automated and manual evaluation suite:
 | Unit tests (no API) | BMR/TDEE math, profile logic, safety classifier | 33/33 PASS |
 | Integration tests | Router intent classification (12 cases, 6 classes) | 12/12 PASS |
 | Node-sequence tests | LangGraph workflow correctness for all 8 paths | 8/8 PASS |
-| RAGAS faithfulness | LLM-as-judge grounding eval (Gemma 4 31B) | **0.860** ✅ (target >0.85) |
-| RAGAS context precision | Retrieval relevance (Gemma 4 31B) | **0.820** ✅ (target >0.75) |
+| RAGAS faithfulness | LLM-as-judge grounding eval (Gemma 4 31B) | **0.722** ❌ (target >0.85) |
+| RAGAS context precision | Retrieval relevance (Gemma 4 31B) | **0.716** ❌ (target >0.75) |
 | RAG vs API boundary | 6 cases, RAG-first rule enforcement | 6/6 PASS |
 
 ---
 
 ## Evaluation Results
 
-![RAGAS Results](assets/ragas_results.png)
-
 **Faithfulness** measures whether every claim in the generated answer is grounded in the retrieved context chunks — a score of 1.0 means no hallucination at all. **Context precision** measures how many of the retrieved chunks were actually relevant to the question — higher scores mean the pipeline surfaces the right documents, not just any documents.
 
-Final scores (8 cases, default skip list, `--no-multi-query`):
+Latest scores (7 cases, `--no-multi-query`, judge: Gemma 4 31B IT, 2026-04-19):
 
 | Case | Faithfulness | Context Precision | Notes |
 |------|-------------|------------------|-------|
 | p1_003 | 1.000 | 0.587 | NIH ODS retrieval noise — answer correct, adjacent vitamin D chunks ranked alongside the UL chunk |
-| p1_004 | 1.000 | 1.000 | |
+| p1_004 | 0.250 | 0.833 | Regression under investigation |
 | p1_006 | 1.000 | 1.000 | |
-| p1_007 | 0.909 | 0.844 | |
+| p1_007 | 1.000 | 0.593 | |
 | p1_009 | 0.929 | 1.000 | |
-| p1_010 | 0.167 | 0.125 | USDA data gap (banana) — system correctly triggers API fallback in live mode |
 | p1_011 | 0.875 | 1.000 | |
-| p1_012 | 1.000 | 1.000 | |
-| **Average** | **0.860 ✅** | **0.820 ✅** | |
+| p1_012 | 0.000 | 0.000 | Regression under investigation |
+| **Average** | **0.722** ❌ | **0.716** ❌ | Below targets (>0.85 / >0.75) |
 
-**Skipped cases — three distinct categories, none are pipeline defects:**
+**Skipped cases:**
 
-**USDA data gap** (`p1_001`, `p1_002`): The 3k-chunk USDA subset is skewed toward processed foods — plain chicken breast and raw spinach are not indexed. For these queries the system correctly triggers the live USDA API fallback, validated separately by `rag_vs_api_check.py` (6/6 PASS). The RAGAS eval script calls the retrieval pipeline directly and doesn't run the full LangGraph agent, so the API fallback path is outside its scope. (Note: `p1_010` is a similar gap kept in the eval table to demonstrate the low RAG-only score).
+**USDA data gap** (`p1_001`, `p1_002`, `p1_010`): The 3k-chunk USDA subset is skewed toward processed foods — plain chicken breast, raw spinach, and banana are not indexed. For these queries the system correctly triggers the live USDA API fallback, validated separately by `rag_vs_api_check.py` (6/6 PASS). The RAGAS eval script calls the retrieval pipeline directly and doesn't run the full LangGraph agent, so the API fallback path is outside its scope.
 
 **Single-query retrieval gap** (`p1_005`): "What are good compound exercises for back using a barbell" requires multi-query expansion to surface the wger Barbell Row chunk — single-query retrieves leg/shoulder exercises instead. Scores correctly (~0.99) with multi-query enabled.
 
@@ -157,7 +154,8 @@ zenic/
 │   ├── layer1_classifier.py # Regex keyword filter
 │   └── layer2_openfda.py    # OpenFDA adverse event lookup
 └── ui/
-    └── app.py               # Streamlit chat interface
+    ├── app.py               # Streamlit chat interface
+    └── styles.css           # Custom CSS (dark theme, metric cards, hero section)
 
 tests/
 ├── pillar2/                 # test_calculations, test_profile_check, test_router
@@ -174,6 +172,9 @@ scripts/
 
 eval_data/
 └── pillar1_spot_check.json  # 12 hand-crafted evaluation cases
+
+.streamlit/
+└── config.toml              # Streamlit theme (dark green palette)
 ```
 
 ---

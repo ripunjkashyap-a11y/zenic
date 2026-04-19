@@ -1,22 +1,23 @@
 {
-  "timestamp": "2026-04-16T10:53:57.001038Z",
+  "timestamp": "2026-04-19T10:29:13.406456Z",
   "judge": "gemma-4-31b-it",
   "mode": "single-query",
   "skipped": [
     "p1_001",
     "p1_002",
     "p1_005",
-    "p1_008"
+    "p1_008",
+    "p1_010"
   ],
   "averages": {
-    "faithfulness": 0.9068,
-    "context_precision": 0.7988
+    "faithfulness": 0.7219,
+    "context_precision": 0.7162
   },
   "targets": {
     "faithfulness": 0.85,
     "context_precision": 0.75
   },
-  "overall_pass": true,
+  "overall_pass": false,
   "per_case": [
     {
       "id": "p1_003",
@@ -25,7 +26,7 @@
     },
     {
       "id": "p1_004",
-      "faithfulness": 0.8,
+      "faithfulness": 0.25,
       "context_precision": 0.8333
     },
     {
@@ -35,28 +36,23 @@
     },
     {
       "id": "p1_007",
-      "faithfulness": 0.8333,
-      "context_precision": 0.8444
+      "faithfulness": 1.0,
+      "context_precision": 0.5931
     },
     {
       "id": "p1_009",
-      "faithfulness": 0.9643,
+      "faithfulness": 0.9286,
       "context_precision": 1.0
     },
     {
-      "id": "p1_010",
-      "faithfulness": 0.8,
-      "context_precision": 0.125
-    },
-    {
       "id": "p1_011",
-      "faithfulness": 0.8571,
+      "faithfulness": 0.875,
       "context_precision": 1.0
     },
     {
       "id": "p1_012",
-      "faithfulness": 1.0,
-      "context_precision": 1.0
+      "faithfulness": 0.0,
+      "context_precision": 0.0
     }
   ]
 }
