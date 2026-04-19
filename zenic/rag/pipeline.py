@@ -209,6 +209,33 @@ def _all_low_quality(chunks: list[dict], threshold: float = 0.3) -> bool:
 
 def generate(query: str, context_chunks: list[dict], intent: str = "") -> str:
     """Generate a grounded answer with source citations."""
+
+    # --- Calculate intent: present pre-computed deterministic results ---
+    if intent == "calculate":
+        calc_chunk = next(
+            (c for c in context_chunks if c.get("metadata", {}).get("source") == "Zenic Calculator"),
+            None,
+        )
+        if calc_chunk:
+            system_prompt = (
+                "You are Zenic, a health and nutrition assistant. "
+                "You have already computed the user's metrics using the Harris-Benedict equation. "
+                "Present the pre-computed results below clearly and concisely. "
+                "DO NOT recalculate. DO NOT use different numbers. "
+                "Format the results with clear labels (BMR, TDEE, macros). "
+                "Add a brief 1-sentence practical tip at the end."
+            )
+            messages = [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": f"Pre-computed results:\n{calc_chunk['text']}\n\nUser query: {query}"},
+            ]
+            response = _groq().chat.completions.create(
+                model=os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"),
+                messages=messages,
+            )
+            return response.choices[0].message.content
+
+    # --- General chat: conversational LLM ---
     if intent == "general_chat" or not context_chunks or _all_low_quality(context_chunks):
         system_prompt = (
             "You are Zenic, a friendly AI health and nutrition assistant. "
@@ -222,6 +249,7 @@ def generate(query: str, context_chunks: list[dict], intent: str = "") -> str:
             {"role": "user", "content": query},
         ]
     else:
+        # --- RAG intents: strict Clinical Data Retrieval ---
         context_text = "\n\n".join(
             f"[Source: {c['metadata'].get('source', 'Unknown')}, "
             f"{c['metadata'].get('year', '')}]\n{c['text']}"
