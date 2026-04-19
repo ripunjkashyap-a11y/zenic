@@ -8,6 +8,8 @@ A production-grade AI assistant for health, nutrition, and fitness — built acr
 
 Zenic answers natural language questions about nutrition and exercise using a locally indexed knowledge base, then routes each query through a multi-node LangGraph agent to determine the right response type: a factual answer, a macro calculation, a downloadable meal/workout plan, or a weekly health summary.
 
+![Zenic UI](assets/ui_landing.png)
+
 **Example interactions:**
 - *"What does the ISSN recommend for protein intake for athletes?"* → RAG answer citing source + year
 - *"Calculate my TDEE — I'm 28, 75kg, 178cm, moderately active"* → deterministic math, no LLM
