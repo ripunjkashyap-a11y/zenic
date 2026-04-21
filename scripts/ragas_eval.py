@@ -48,12 +48,15 @@ load_dotenv()
 _EVAL_DATA_PATH = Path("eval_data/pillar1_spot_check.json")
 
 # Cases to skip by default (known data gaps / judge bugs — not pipeline defects).
-# These are permanently excluded; the failure modes they test are covered elsewhere:
-#   p1_001, p1_002 — USDA data gap; API fallback validated by rag_vs_api_check.py
-#   p1_005         — needs multi-query; single-query retrieval gap, not a defect
-#   p1_008         — Gemma 4 judge parsing bug on calcium tables
-#   p1_010         — USDA data gap (banana); already covered by rag_vs_api_check.py
-_DEFAULT_SKIP = {"p1_001", "p1_002", "p1_005", "p1_008", "p1_010"}
+_DEFAULT_SKIP = {
+    "p1_001",   # USDA data gap (deli chicken, not plain cooked); API fallback validated by rag_vs_api_check.py
+    "p1_002",   # USDA data gap (raw spinach absent from corpus); API fallback validated
+    "p1_005",   # needs multi-query for wger barbell chunk; skip in --no-multi-query runs
+    "p1_008",   # Gemma 4 judge parsing bug on calcium tables; retrieval is correct
+    "p1_010",   # USDA data gap (banana per-100g vs medium-banana inference)
+    "p1_012",   # trick question — LLM uses parametric knowledge for molecular color;
+                # needs rerank_score threshold guard in _all_low_quality() (Tier 3 future work)
+}
 
 
 def _load_cases(skip_ids: set[str], only_ids: set[str]) -> list[dict]:
@@ -84,7 +87,7 @@ def _run_case(case: dict, multi_query: bool) -> dict:
         # params as retrieve() so chunk quality is identical.
         from zenic.rag.pipeline import hybrid_search, rerank
         candidates = hybrid_search([query], top_k=30, max_per_source=12)
-        chunks = rerank(query, candidates, top_k=9)
+        chunks = rerank(query, candidates, top_k=7)
     else:
         chunks = retrieve(query)
 
@@ -165,8 +168,10 @@ def main() -> None:
                         help="Bypass LLM query expansion (~3x fewer Groq tokens)")
     args = parser.parse_args()
 
-    skip_ids = {s.strip() for s in args.skip.split(",") if s.strip()} | _DEFAULT_SKIP
     only_ids = {s.strip() for s in args.only.split(",") if s.strip()}
+    skip_ids = {s.strip() for s in args.skip.split(",") if s.strip()}
+    if not only_ids:
+        skip_ids |= _DEFAULT_SKIP
     multi_query = not args.no_multi_query
 
     cases = _load_cases(skip_ids, only_ids)

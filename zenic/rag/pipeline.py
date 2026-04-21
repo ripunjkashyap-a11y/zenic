@@ -197,7 +197,7 @@ def retrieve(query: str) -> list[dict]:
     # candidates from each source — especially NIH_ODS which has 6k+ chunks and
     # needs more slots to surface nutrient-specific content past generic neighbors.
     candidates = hybrid_search(queries, top_k=30, max_per_source=12)
-    return rerank(query, candidates, top_k=9)
+    return rerank(query, candidates, top_k=7)
 
 
 def _all_low_quality(chunks: list[dict], threshold: float = 0.3) -> bool:
